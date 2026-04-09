@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nurburgring Lap Quest</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="kicker">RPG + Telemetry Simulator</p>
+        <h1>Nurburgring Lap Quest</h1>
+        <p class="subtitle">
+          Build your garage hero, tune conditions, and estimate potential Nordschleife lap
+          time from real-style history + specs.
+        </p>
+      </header>
+
+      <section class="grid-layout">
+        <aside class="panel control-panel">
+          <h2>Pit Wall Console</h2>
+
+          <div class="control-group">
+            <label for="carSelect">Popular Car</label>
+            <select id="carSelect" aria-label="Select car"></select>
+          </div>
+
+          <div class="spec-grid" id="specGrid"></div>
+
+          <div class="control-group">
+            <label for="driverConfidence">Driver confidence: <span id="driverConfidenceValue"></span></label>
+            <input id="driverConfidence" type="range" min="40" max="100" value="78" />
+          </div>
+          <div class="control-group">
+            <label for="weatherGrip">Track grip / weather: <span id="weatherGripValue"></span></label>
+            <input id="weatherGrip" type="range" min="55" max="100" value="88" />
+          </div>
+          <div class="control-group">
+            <label for="tireLife">Tire life: <span id="tireLifeValue"></span></label>
+            <input id="tireLife" type="range" min="45" max="100" value="84" />
+          </div>
+          <div class="control-group">
+            <label for="fuelLoad">Fuel load (L): <span id="fuelLoadValue"></span></label>
+            <input id="fuelLoad" type="range" min="5" max="90" value="38" />
+          </div>
+
+          <div class="button-row">
+            <button id="predictBtn" class="btn btn-primary">Predict Potential Lap</button>
+            <button id="practiceBtn" class="btn btn-secondary">Run Practice Lap (+XP)</button>
+          </div>
+        </aside>
+
+        <section class="panel results-panel">
+          <h2>Race Guild Progress</h2>
+          <div class="player-card">
+            <p>Driver Rank: <strong id="playerLevel"></strong></p>
+            <p>XP: <strong id="playerXp"></strong></p>
+            <p>Class: <strong id="playerClass"></strong></p>
+            <div class="xp-meter">
+              <div id="xpFill"></div>
+            </div>
+          </div>
+
+          <div class="skills">
+            <h3>Skill Points</h3>
+            <div class="skill-grid">
+              <label>Telemetry <span id="skillTelemetryValue"></span></label>
+              <button data-skill="telemetry" class="skill-btn">Upgrade</button>
+
+              <label>Chassis Tuning <span id="skillTuningValue"></span></label>
+              <button data-skill="tuning" class="skill-btn">Upgrade</button>
+
+              <label>Race Craft <span id="skillRacecraftValue"></span></label>
+              <button data-skill="racecraft" class="skill-btn">Upgrade</button>
+            </div>
+            <p class="muted">Unspent points: <strong id="skillPoints"></strong></p>
+          </div>
+
+          <article class="prediction-card" id="predictionCard">
+            <h3>Potential Nürburgring Lap</h3>
+            <p class="big-time" id="predictedLap">--:--.---</p>
+            <p id="predictionBreakdown" class="muted">
+              Select a car and run a prediction to view breakdown.
+            </p>
+          </article>
+        </section>
+
+        <section class="panel history-panel">
+          <h2>Lap Archive</h2>
+          <p class="muted">Recent historical laps for selected car (seconds sorted newest → oldest).</p>
+          <ul id="historyList" class="history-list"></ul>
+
+          <form id="manualLapForm" class="manual-form">
+            <label for="manualLapInput">Add your own lap (mm:ss.mmm)</label>
+            <div class="inline-form">
+              <input id="manualLapInput" placeholder="07:34.125" />
+              <button class="btn btn-secondary" type="submit">Add Lap</button>
+            </div>
+          </form>
+
+          <h3>Guild Leaderboard (Predicted)</h3>
+          <ol id="leaderboard" class="leaderboard"></ol>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

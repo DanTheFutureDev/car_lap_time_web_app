@@ -1,0 +1,249 @@
+:root {
+  --bg: #060b17;
+  --panel: #111a2b;
+  --panel-light: #17233a;
+  --text: #e8eefc;
+  --muted: #9aa8c6;
+  --accent: #47c1ff;
+  --accent-2: #6effb8;
+  --danger: #ff6b87;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at 20% 10%, #15213b 0%, var(--bg) 55%);
+  min-height: 100vh;
+}
+
+.app-shell {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem 2.5rem;
+}
+
+.hero {
+  margin-bottom: 1.5rem;
+}
+
+.kicker {
+  margin: 0;
+  color: var(--accent-2);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+h1 {
+  margin: 0.3rem 0 0.25rem;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--muted);
+  max-width: 70ch;
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.panel {
+  background: linear-gradient(180deg, var(--panel-light), var(--panel));
+  border: 1px solid #243451;
+  border-radius: 14px;
+  padding: 1rem;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+}
+
+.panel h2 {
+  margin-top: 0;
+  margin-bottom: 0.9rem;
+}
+
+.control-group {
+  margin-bottom: 0.85rem;
+}
+
+.control-group label {
+  display: block;
+  font-size: 0.92rem;
+  margin-bottom: 0.35rem;
+}
+
+select,
+input {
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid #2f4263;
+  background: #0c1527;
+  color: var(--text);
+}
+
+input[type="range"] {
+  padding: 0;
+}
+
+.spec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.spec-grid div {
+  background: #0d1628;
+  border: 1px solid #273758;
+  border-radius: 8px;
+  padding: 0.45rem;
+}
+
+.spec-grid small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.spec-grid strong {
+  display: block;
+  margin-top: 0.1rem;
+}
+
+.button-row {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.btn {
+  border: 0;
+  border-radius: 9px;
+  padding: 0.62rem 0.75rem;
+  color: #051020;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--accent), #8ad8ff);
+}
+
+.btn-secondary {
+  background: linear-gradient(90deg, var(--accent-2), #b5ffdf);
+}
+
+.player-card,
+.prediction-card,
+.skills {
+  background: #0c1425;
+  border: 1px solid #2a3a59;
+  border-radius: 10px;
+  padding: 0.8rem;
+  margin-bottom: 0.8rem;
+}
+
+.xp-meter {
+  height: 10px;
+  width: 100%;
+  border-radius: 999px;
+  background: #1d2a45;
+  overflow: hidden;
+}
+
+#xpFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 0.25s ease;
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.skill-btn {
+  border: 1px solid #2e4468;
+  border-radius: 8px;
+  background: #182844;
+  color: #dcf3ff;
+  padding: 0.35rem 0.55rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.big-time {
+  margin: 0.35rem 0;
+  font-size: clamp(1.8rem, 4.5vw, 2.4rem);
+  letter-spacing: 0.03em;
+}
+
+.muted {
+  color: var(--muted);
+  margin: 0;
+}
+
+.history-list,
+.leaderboard {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.history-list li,
+.leaderboard li {
+  margin-bottom: 0.35rem;
+}
+
+.manual-form {
+  margin: 0.7rem 0 1rem;
+}
+
+.inline-form {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.flash {
+  animation: flashPulse 0.5s ease;
+}
+
+@keyframes flashPulse {
+  0% {
+    box-shadow: 0 0 0 rgba(71, 193, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(71, 193, 255, 0.35);
+  }
+  100% {
+    box-shadow: 0 0 0 rgba(71, 193, 255, 0.1);
+  }
+}
+
+@media (max-width: 1020px) {
+  .grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
