@@ -25,6 +25,11 @@
             <label for="carSelect">Popular Car</label>
             <select id="carSelect" aria-label="Select car"></select>
           </div>
+          <div class="control-group">
+            <label for="trackModeSelect">Track mode</label>
+            <select id="trackModeSelect" aria-label="Select track mode"></select>
+            <p class="muted tiny" id="trackModeDescription"></p>
+          </div>
 
           <div class="spec-grid" id="specGrid"></div>
 
@@ -45,10 +50,34 @@
             <input id="fuelLoad" type="range" min="5" max="90" value="38" />
           </div>
 
+          <section class="assumption-panel">
+            <h3>Model Assumptions</h3>
+            <div class="control-group">
+              <label for="tractionUtilization"
+                >Traction utilization: <span id="tractionUtilizationValue"></span
+              ></label>
+              <input id="tractionUtilization" type="range" min="70" max="100" value="90" />
+            </div>
+            <div class="control-group">
+              <label for="aeroEfficiency">Aero efficiency: <span id="aeroEfficiencyValue"></span></label>
+              <input id="aeroEfficiency" type="range" min="75" max="120" value="100" />
+            </div>
+            <div class="control-group">
+              <label for="resistanceLoad">Resistance load: <span id="resistanceLoadValue"></span></label>
+              <input id="resistanceLoad" type="range" min="80" max="130" value="100" />
+            </div>
+            <div class="control-group">
+              <label for="calibrationBias">Calibration bias: <span id="calibrationBiasValue"></span></label>
+              <input id="calibrationBias" type="range" min="-15" max="15" value="0" />
+            </div>
+          </section>
+
           <div class="button-row">
             <button id="predictBtn" class="btn btn-primary">Predict Potential Lap</button>
             <button id="practiceBtn" class="btn btn-secondary">Run Practice Lap (+XP)</button>
+            <button id="resetSaveBtn" class="btn btn-danger">Reset Saved Progress</button>
           </div>
+          <p class="muted tiny">Autosave: <strong id="saveStatus">Idle</strong></p>
         </aside>
 
         <section class="panel results-panel">
@@ -83,6 +112,7 @@
             <p id="predictionBreakdown" class="muted">
               Select a car and run a prediction to view breakdown.
             </p>
+            <p id="predictionMeta" class="muted tiny"></p>
           </article>
         </section>
 

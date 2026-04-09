@@ -1,3 +1,5 @@
+const STORAGE_KEY = "nurburgring-lap-quest-v1";
+
 const carDatabase = [
   {
     id: "911_gt3",
@@ -71,8 +73,9 @@ const carDatabase = [
   }
 ];
 
-const state = {
+const defaultState = {
   selectedCarId: carDatabase[0].id,
+  selectedTrackModeId: "sport-auto",
   player: {
     level: 1,
     xp: 0,
@@ -91,22 +94,84 @@ const state = {
     tireLife: 84,
     fuelLoad: 38
   },
+  assumptions: {
+    tractionUtilization: 90,
+    aeroEfficiency: 100,
+    resistanceLoad: 100,
+    calibrationBias: 0
+  },
+  lapHistoryOverrides: {},
   prediction: null
+};
+
+const state = structuredClone(defaultState);
+
+const trackModes = [
+  {
+    id: "tourist",
+    label: "Touristenfahrten",
+    description: "Open-session traffic assumptions with moderate caution factors.",
+    modeDeltaSec: 7.2,
+    effectiveLengthKm: 20.6,
+    trafficFactor: 1.03
+  },
+  {
+    id: "sport-auto",
+    label: "Sport Auto Timing",
+    description: "Magazine-style benchmark timing reference mode.",
+    modeDeltaSec: 0,
+    effectiveLengthKm: 20.6,
+    trafficFactor: 1.0
+  },
+  {
+    id: "industry-pool",
+    label: "Industry Pool",
+    description: "Professional manufacturer sessions with cleaner windows.",
+    modeDeltaSec: -3.8,
+    effectiveLengthKm: 20.6,
+    trafficFactor: 0.99
+  },
+  {
+    id: "endurance-stint",
+    label: "Endurance Stint",
+    description: "Conservative pace across sustained runs and thermal limits.",
+    modeDeltaSec: 10.5,
+    effectiveLengthKm: 24.4,
+    trafficFactor: 1.02
+  }
+];
+
+const drivetrainTraction = {
+  RWD: 0.95,
+  AWD: 1.0,
+  FWD: 0.91
 };
 
 const dom = {
   carSelect: document.getElementById("carSelect"),
+  trackModeSelect: document.getElementById("trackModeSelect"),
+  trackModeDescription: document.getElementById("trackModeDescription"),
   specGrid: document.getElementById("specGrid"),
   driverConfidence: document.getElementById("driverConfidence"),
   weatherGrip: document.getElementById("weatherGrip"),
   tireLife: document.getElementById("tireLife"),
   fuelLoad: document.getElementById("fuelLoad"),
+  tractionUtilization: document.getElementById("tractionUtilization"),
+  aeroEfficiency: document.getElementById("aeroEfficiency"),
+  resistanceLoad: document.getElementById("resistanceLoad"),
+  calibrationBias: document.getElementById("calibrationBias"),
   driverConfidenceValue: document.getElementById("driverConfidenceValue"),
   weatherGripValue: document.getElementById("weatherGripValue"),
   tireLifeValue: document.getElementById("tireLifeValue"),
   fuelLoadValue: document.getElementById("fuelLoadValue"),
+  tractionUtilizationValue: document.getElementById("tractionUtilizationValue"),
+  aeroEfficiencyValue: document.getElementById("aeroEfficiencyValue"),
+  resistanceLoadValue: document.getElementById("resistanceLoadValue"),
+  calibrationBiasValue: document.getElementById("calibrationBiasValue"),
   predictBtn: document.getElementById("predictBtn"),
   practiceBtn: document.getElementById("practiceBtn"),
+  resetSaveBtn: document.getElementById("resetSaveBtn"),
+  saveStatus: document.getElementById("saveStatus"),
   playerLevel: document.getElementById("playerLevel"),
   playerXp: document.getElementById("playerXp"),
   playerClass: document.getElementById("playerClass"),
@@ -117,6 +182,7 @@ const dom = {
   skillRacecraftValue: document.getElementById("skillRacecraftValue"),
   predictedLap: document.getElementById("predictedLap"),
   predictionBreakdown: document.getElementById("predictionBreakdown"),
+  predictionMeta: document.getElementById("predictionMeta"),
   historyList: document.getElementById("historyList"),
   leaderboard: document.getElementById("leaderboard"),
   manualLapForm: document.getElementById("manualLapForm"),
@@ -124,8 +190,117 @@ const dom = {
   predictionCard: document.getElementById("predictionCard")
 };
 
+let saveStatusTimer = null;
+
+function mergeState(target, source) {
+  Object.keys(source).forEach((key) => {
+    if (
+      source[key] &&
+      typeof source[key] === "object" &&
+      !Array.isArray(source[key]) &&
+      target[key] &&
+      typeof target[key] === "object"
+    ) {
+      mergeState(target[key], source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  });
+}
+
+function sanitizeState(candidate) {
+  const sanitized = structuredClone(defaultState);
+  if (!candidate || typeof candidate !== "object") {
+    return sanitized;
+  }
+
+  mergeState(sanitized, candidate);
+  if (!carDatabase.some((car) => car.id === sanitized.selectedCarId)) {
+    sanitized.selectedCarId = defaultState.selectedCarId;
+  }
+  if (!trackModes.some((mode) => mode.id === sanitized.selectedTrackModeId)) {
+    sanitized.selectedTrackModeId = defaultState.selectedTrackModeId;
+  }
+  return sanitized;
+}
+
+function updateSaveStatus(message, transient = true) {
+  dom.saveStatus.textContent = message;
+  if (saveStatusTimer) {
+    clearTimeout(saveStatusTimer);
+    saveStatusTimer = null;
+  }
+  if (transient) {
+    saveStatusTimer = setTimeout(() => {
+      dom.saveStatus.textContent = "Idle";
+    }, 1700);
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    updateSaveStatus("Saved");
+  } catch {
+    updateSaveStatus("Save failed", false);
+  }
+}
+
+function applyHistoryOverrides() {
+  carDatabase.forEach((car) => {
+    const override = state.lapHistoryOverrides[car.id];
+    if (Array.isArray(override) && override.length > 0) {
+      car.lapHistorySec = override.map((v) => Number(v));
+    }
+  });
+}
+
+function syncHistoryOverrides() {
+  carDatabase.forEach((car) => {
+    state.lapHistoryOverrides[car.id] = [...car.lapHistorySec];
+  });
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      updateSaveStatus("No save", true);
+      return;
+    }
+    const parsed = JSON.parse(raw);
+    const restored = sanitizeState(parsed);
+    Object.keys(state).forEach((key) => {
+      delete state[key];
+    });
+    mergeState(state, restored);
+    applyHistoryOverrides();
+    updateSaveStatus("Loaded", true);
+  } catch {
+    updateSaveStatus("Load failed", false);
+  }
+}
+
+function resetSave() {
+  localStorage.removeItem(STORAGE_KEY);
+  Object.keys(state).forEach((key) => {
+    delete state[key];
+  });
+  mergeState(state, structuredClone(defaultState));
+  carDatabase.forEach((car) => {
+    const original = carDatabaseSeed.find((seed) => seed.id === car.id);
+    car.lapHistorySec = [...original.lapHistorySec];
+  });
+  updateSaveStatus("Reset complete", false);
+  refreshAll();
+}
+
 function getSelectedCar() {
   return carDatabase.find((car) => car.id === state.selectedCarId);
+}
+
+function getSelectedTrackMode() {
+  return trackModes.find((mode) => mode.id === state.selectedTrackModeId);
 }
 
 function formatLap(seconds) {
@@ -145,10 +320,6 @@ function parseLapTime(input) {
   return minutes * 60 + seconds;
 }
 
-function average(values) {
-  return values.reduce((sum, value) => sum + value, 0) / values.length;
-}
-
 function weightedRecentAverage(historySec) {
   const weights = [1.0, 0.9, 0.8, 0.7, 0.6];
   let weightedSum = 0;
@@ -161,27 +332,33 @@ function weightedRecentAverage(historySec) {
   return weightedSum / totalWeight;
 }
 
-function computeSpecDelta(car) {
+function computePhysicsBaseline(car, mode) {
+  const assumptions = state.assumptions;
+  const weightRatio = car.curbWeightKg / 1500;
   const powerToWeight = car.horsepower / car.curbWeightKg;
-  const baselinePowerToWeight = 0.285;
-  const pwGain = (powerToWeight - baselinePowerToWeight) * -120;
-  const aeroGain = (car.aeroScore - 70) * -0.27;
-  const brakeGain = (car.brakeScore - 70) * -0.18;
+  const tractionFactor =
+    drivetrainTraction[car.drivetrain] * (assumptions.tractionUtilization / 100);
+  const aeroFactor = (car.aeroScore / 100) * (assumptions.aeroEfficiency / 100);
+  const brakeFactor = car.brakeScore / 100;
+  const resistanceFactor = assumptions.resistanceLoad / 100;
 
-  let drivetrainModifier = 0;
-  if (car.drivetrain === "AWD") drivetrainModifier = -0.8;
-  if (car.drivetrain === "FWD") drivetrainModifier = +1.4;
+  // Segment-inspired model: acceleration, cornering, braking, and drag/load penalties.
+  const accelComponent = 352 * (weightRatio / Math.max(powerToWeight * tractionFactor, 0.12));
+  const cornerComponent = 128 * (1 / Math.max(aeroFactor * 0.68 + brakeFactor * 0.32, 0.5));
+  const loadAndDragPenalty = 52 * resistanceFactor;
+  const modeLengthPenalty = (mode.effectiveLengthKm - 20.6) * 8.4;
 
-  return pwGain + aeroGain + brakeGain + drivetrainModifier;
+  return accelComponent + cornerComponent + loadAndDragPenalty + modeLengthPenalty;
 }
 
-function computeModifierDelta() {
+function computeConditionDelta(mode) {
   const m = state.modifiers;
-  const confidenceDelta = (80 - m.driverConfidence) * 0.22;
-  const weatherDelta = (90 - m.weatherGrip) * 0.35;
-  const tireDelta = (88 - m.tireLife) * 0.18;
-  const fuelDelta = (m.fuelLoad - 30) * 0.07;
-  return confidenceDelta + weatherDelta + tireDelta + fuelDelta;
+  const confidenceDelta = (83 - m.driverConfidence) * 0.28;
+  const weatherDelta = (92 - m.weatherGrip) * 0.33;
+  const tireDelta = (90 - m.tireLife) * 0.2;
+  const fuelDelta = (m.fuelLoad - 28) * 0.085;
+  const trafficDelta = (mode.trafficFactor - 1) * 95;
+  return confidenceDelta + weatherDelta + tireDelta + fuelDelta + trafficDelta;
 }
 
 function computeSkillDelta() {
@@ -190,18 +367,24 @@ function computeSkillDelta() {
 }
 
 function computePotentialLap(car) {
+  const mode = getSelectedTrackMode();
   const historyBase = weightedRecentAverage(car.lapHistorySec);
-  const specDelta = computeSpecDelta(car);
-  const conditionDelta = computeModifierDelta();
+  const physicsBase = computePhysicsBaseline(car, mode);
+  const conditionDelta = computeConditionDelta(mode);
   const skillDelta = computeSkillDelta();
-
-  const estimate = historyBase + specDelta + conditionDelta + skillDelta;
+  const assumptionDelta = state.assumptions.calibrationBias;
+  const blendedBase = historyBase * 0.58 + physicsBase * 0.42;
+  const estimate =
+    blendedBase + conditionDelta + skillDelta + mode.modeDeltaSec + assumptionDelta;
   return {
     totalSec: Math.max(390, estimate),
     historyBase,
-    specDelta,
+    physicsBase,
+    blendedBase,
     conditionDelta,
-    skillDelta
+    skillDelta,
+    modeDelta: mode.modeDeltaSec,
+    assumptionDelta
   };
 }
 
@@ -229,6 +412,10 @@ function updateSlidersReadout() {
   dom.weatherGripValue.textContent = `${state.modifiers.weatherGrip}%`;
   dom.tireLifeValue.textContent = `${state.modifiers.tireLife}%`;
   dom.fuelLoadValue.textContent = `${state.modifiers.fuelLoad}L`;
+  dom.tractionUtilizationValue.textContent = `${state.assumptions.tractionUtilization}%`;
+  dom.aeroEfficiencyValue.textContent = `${state.assumptions.aeroEfficiency}%`;
+  dom.resistanceLoadValue.textContent = `${state.assumptions.resistanceLoad}%`;
+  dom.calibrationBiasValue.textContent = `${state.assumptions.calibrationBias > 0 ? "+" : ""}${state.assumptions.calibrationBias}s`;
 }
 
 function renderCarSelect() {
@@ -236,6 +423,15 @@ function renderCarSelect() {
     .map((car) => `<option value="${car.id}">${car.name}</option>`)
     .join("");
   dom.carSelect.value = state.selectedCarId;
+}
+
+function renderTrackModes() {
+  dom.trackModeSelect.innerHTML = trackModes
+    .map((mode) => `<option value="${mode.id}">${mode.label}</option>`)
+    .join("");
+  dom.trackModeSelect.value = state.selectedTrackModeId;
+  const selected = getSelectedTrackMode();
+  dom.trackModeDescription.textContent = selected.description;
 }
 
 function renderSpecs() {
@@ -276,18 +472,33 @@ function renderPrediction() {
     dom.predictedLap.textContent = "--:--.---";
     dom.predictionBreakdown.textContent =
       "Select a car and run a prediction to view breakdown.";
+    dom.predictionMeta.textContent = "";
     dom.predictionCard.classList.remove("active");
     return;
   }
 
-  const { totalSec, historyBase, specDelta, conditionDelta, skillDelta } = state.prediction;
+  const {
+    totalSec,
+    historyBase,
+    physicsBase,
+    blendedBase,
+    conditionDelta,
+    skillDelta,
+    modeDelta,
+    assumptionDelta
+  } = state.prediction;
+  const mode = getSelectedTrackMode();
   dom.predictedLap.textContent = formatLap(totalSec);
   dom.predictionBreakdown.innerHTML = `
     Baseline from lap history: <strong>${formatLap(historyBase)}</strong><br />
-    Specs impact: <strong>${specDelta.toFixed(2)}s</strong> |
+    Physics baseline: <strong>${formatLap(physicsBase)}</strong> |
+    Blended baseline: <strong>${formatLap(blendedBase)}</strong><br />
     Conditions impact: <strong>${conditionDelta.toFixed(2)}s</strong> |
-    RPG skills impact: <strong>${skillDelta.toFixed(2)}s</strong>
+    RPG skills impact: <strong>${skillDelta.toFixed(2)}s</strong> |
+    Mode delta: <strong>${modeDelta.toFixed(2)}s</strong> |
+    Calibration bias: <strong>${assumptionDelta.toFixed(2)}s</strong>
   `;
+  dom.predictionMeta.textContent = `Track mode: ${mode.label}`;
   dom.predictionCard.classList.add("active");
 }
 
@@ -314,6 +525,7 @@ function predict() {
   gainXp(14 + performanceBonus);
   renderPlayer();
   buildLeaderboard();
+  saveState();
 }
 
 function practiceLap() {
@@ -328,6 +540,8 @@ function practiceLap() {
   renderPlayer();
   state.prediction = null;
   renderPrediction();
+  syncHistoryOverrides();
+  saveState();
 }
 
 function handleSkillUpgrade(skillKey) {
@@ -341,6 +555,7 @@ function handleSkillUpgrade(skillKey) {
   state.player.skills[skillKey] += 1;
   renderPlayer();
   buildLeaderboard();
+  saveState();
 }
 
 function wireEvents() {
@@ -350,6 +565,16 @@ function wireEvents() {
     renderSpecs();
     renderHistory();
     renderPrediction();
+    saveState();
+  });
+
+  dom.trackModeSelect.addEventListener("change", (event) => {
+    state.selectedTrackModeId = event.target.value;
+    state.prediction = null;
+    renderTrackModes();
+    renderPrediction();
+    buildLeaderboard();
+    saveState();
   });
 
   [
@@ -362,11 +587,27 @@ function wireEvents() {
       state.modifiers[key] = Number(element.value);
       updateSlidersReadout();
       buildLeaderboard();
+      saveState();
+    });
+  });
+
+  [
+    ["tractionUtilization", dom.tractionUtilization],
+    ["aeroEfficiency", dom.aeroEfficiency],
+    ["resistanceLoad", dom.resistanceLoad],
+    ["calibrationBias", dom.calibrationBias]
+  ].forEach(([key, element]) => {
+    element.addEventListener("input", () => {
+      state.assumptions[key] = Number(element.value);
+      updateSlidersReadout();
+      buildLeaderboard();
+      saveState();
     });
   });
 
   dom.predictBtn.addEventListener("click", predict);
   dom.practiceBtn.addEventListener("click", practiceLap);
+  dom.resetSaveBtn.addEventListener("click", resetSave);
 
   document.querySelectorAll(".skill-btn").forEach((button) => {
     button.addEventListener("click", () => {
@@ -391,11 +632,42 @@ function wireEvents() {
     renderHistory();
     renderPrediction();
     buildLeaderboard();
+    syncHistoryOverrides();
+    saveState();
   });
 }
 
-function init() {
+function setControlValuesFromState() {
+  dom.driverConfidence.value = String(state.modifiers.driverConfidence);
+  dom.weatherGrip.value = String(state.modifiers.weatherGrip);
+  dom.tireLife.value = String(state.modifiers.tireLife);
+  dom.fuelLoad.value = String(state.modifiers.fuelLoad);
+  dom.tractionUtilization.value = String(state.assumptions.tractionUtilization);
+  dom.aeroEfficiency.value = String(state.assumptions.aeroEfficiency);
+  dom.resistanceLoad.value = String(state.assumptions.resistanceLoad);
+  dom.calibrationBias.value = String(state.assumptions.calibrationBias);
+}
+
+function refreshAll() {
+  setControlValuesFromState();
   renderCarSelect();
+  renderTrackModes();
+  renderSpecs();
+  renderHistory();
+  updateSlidersReadout();
+  renderPlayer();
+  renderPrediction();
+  buildLeaderboard();
+}
+
+const carDatabaseSeed = structuredClone(carDatabase);
+
+function init() {
+  loadState();
+  setControlValuesFromState();
+  syncHistoryOverrides();
+  renderCarSelect();
+  renderTrackModes();
   renderSpecs();
   renderHistory();
   updateSlidersReadout();

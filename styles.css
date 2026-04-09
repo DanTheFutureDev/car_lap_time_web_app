@@ -151,6 +151,10 @@ input[type="range"] {
   background: linear-gradient(90deg, var(--accent-2), #b5ffdf);
 }
 
+.btn-danger {
+  background: linear-gradient(90deg, var(--danger), #ff9cb0);
+}
+
 .player-card,
 .prediction-card,
 .skills {
@@ -224,6 +228,29 @@ input[type="range"] {
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
   margin-top: 0.4rem;
+}
+
+.assumption-panel {
+  margin-bottom: 1rem;
+  padding: 0.6rem;
+  border: 1px solid #2a3a59;
+  border-radius: 10px;
+  background: #0b1222;
+}
+
+.assumption-panel h3 {
+  margin: 0 0 0.65rem;
+  font-size: 0.97rem;
+}
+
+.tiny {
+  font-size: 0.8rem;
+}
+
+.spec-item span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.75rem;
 }
 
 .flash {
