@@ -1,0 +1,147 @@
+%PDF-1.4
+1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
+2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj
+3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >> endobj
+4 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Courier >> endobj
+5 0 obj << /Length 3825 >> stream
+BT
+/F1 10 Tf
+72 760 Td
+12 TL
+(Process & Strategy Log) Tj
+T*
+() Tj
+T*
+(Empowerment) Tj
+T*
+(Before this exercise, my software-building ability depended heavily on technical fluency:) Tj
+T*
+(writing syntax from scratch, remembering framework conventions, and debugging implementation) Tj
+T*
+(details line by line. That made turning ideas into working software slower and often) Tj
+T*
+(intimidating when the scope expanded quickly.) Tj
+T*
+() Tj
+T*
+(After this exercise, the process felt more like product direction and systems thinking. I could) Tj
+T*
+(describe intent \(for example, "add track sectors and A/B comparison modes"\), evaluate outputs,) Tj
+T*
+(and iterate toward a result without needing to manually author every line first. This was) Tj
+T*
+(meaningfully empowering because the tool reduced the gap between concept and implementation.) Tj
+T*
+(Instead of getting blocked on low-level details, I focused on defining behavior, reviewing) Tj
+T*
+(outputs, and deciding trade-offs.) Tj
+T*
+() Tj
+T*
+(It was also occasionally overwhelming: the tool can generate large changes quickly, and if) Tj
+T*
+(prompts are broad, outputs may drift from intent. The key learning is that non-coders get the) Tj
+T*
+(most value when they treat this as guided collaboration, not one-shot magic. Practical habits) Tj
+T*
+(include:) Tj
+T*
+(- breaking requests into clear features;) Tj
+T*
+(- validating each increment in the UI;) Tj
+T*
+(- asking for explicit constraints \(data model, edge cases, UX expectations\);) Tj
+T*
+(- requiring explainability \("what changed and why"\);) Tj
+T*
+(- preserving a feedback loop \(test -> critique -> refine\).) Tj
+T*
+() Tj
+T*
+(In short, this tool can materially empower non-coders to ship tangible outcomes, provided they) Tj
+T*
+(use structured prompting and active review.) Tj
+T*
+() Tj
+T*
+(Iterative development) Tj
+T*
+(I evaluated outputs through repeated small loops:) Tj
+T*
+(1. define feature intent and acceptance criteria;) Tj
+T*
+(2. inspect generated code/UI behavior;) Tj
+T*
+(3. run syntax checks and manual smoke tests;) Tj
+T*
+(4. identify mismatches or bugs;) Tj
+T*
+(5. refine prompts/rules and re-run.) Tj
+T*
+() Tj
+T*
+(Examples of refinement strategies used:) Tj
+T*
+(- **Granular requirements:** Instead of "improve comparison," I specified compare modes,) Tj
+T*
+(baseline presets, and swap behavior.) Tj
+T*
+(- **Business-rule clarification:** I encoded constraints like valid compare-car selection \(no) Tj
+T*
+(self-comparison\) and saved-state compatibility.) Tj
+T*
+(- **Model grounding:** I requested explicit factors \(tire warmup windows, ambient penalties,) Tj
+T*
+(sector-level gain/loss\) so simulation behavior remained interpretable.) Tj
+T*
+(- **Persistence expectations:** I required settings/profile state to survive reloads and) Tj
+T*
+(imports.) Tj
+T*
+() Tj
+T*
+(These strategies improved outcome quality by reducing ambiguity, surfacing edge cases earlier,) Tj
+T*
+(and making generated logic easier to audit. The final app is richer and more stable because) Tj
+T*
+(iteration was treated as a controlled product-development cycle rather than a single prompt.) Tj
+T*
+() Tj
+T*
+(Organizational Trade-offs) Tj
+T*
+(Benefits:) Tj
+T*
+(- **Agility:** teams can prototype internal tools and workflow automations much faster.) Tj
+T*
+(- **Accessibility:** more employees can translate domain knowledge into functional software.) Tj
+T*
+(- **Experimentation:** low-friction iteration enables faster discovery and validation.) Tj
+T*
+() Tj
+T*
+(Risks:) Tj
+T*
+(- **Security/compliance drift:** rapid local tools may bypass standard review controls.) Tj
+T*
+(- **Maintainability debt:** ungoverned "vibe-coded" apps can accumulate inconsistent patterns.) Tj
+T*
+(- **Operational fragility:** ownership ambiguity, missing tests, and weak documentation can) Tj
+T*
+(increase long-term risk.) Tj
+T*
+() Tj
+ET
+endstream endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000000309 00000 n 
+trailer << /Size 6 /Root 1 0 R >>
+startxref
+4186
+%%EOF
