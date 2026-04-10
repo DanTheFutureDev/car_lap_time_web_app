@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nurburgring Lap Quest</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="hero">
+        <p class="kicker">RPG + Telemetry Simulator</p>
+        <p class="style-chip">Visual Style: Neo-Arcade HUD</p>
+        <h1>Nurburgring Lap Quest</h1>
+        <p class="subtitle">
+          Track-sector analysis, tire strategy, ambient conditions, and full RPG progression for
+          Nürburgring lap potential simulation.
+        </p>
+      </header>
+
+      <section class="grid-layout">
+        <aside class="panel control-panel">
+          <h2>Pit Wall Console</h2>
+
+          <div class="control-group">
+            <label for="carSelect">Popular Car</label>
+            <select id="carSelect" aria-label="Select car"></select>
+          </div>
+          <div class="control-group">
+            <label for="trackModeSelect">Track mode</label>
+            <select id="trackModeSelect" aria-label="Select track mode"></select>
+            <p class="muted tiny" id="trackModeDescription"></p>
+          </div>
+          <div class="control-group">
+            <label for="tireCompoundSelect">Tire compound</label>
+            <select id="tireCompoundSelect" aria-label="Select tire compound"></select>
+            <p class="muted tiny" id="warmupInfo"></p>
+          </div>
+
+          <div class="spec-grid" id="specGrid"></div>
+
+          <section class="assumption-panel">
+            <h3>Driver + Session Conditions</h3>
+            <div class="control-group">
+              <label for="driverConfidence">Driver confidence: <span id="driverConfidenceValue"></span></label>
+              <input id="driverConfidence" type="range" min="40" max="100" value="78" />
+            </div>
+            <div class="control-group">
+              <label for="weatherGrip">Track grip / weather: <span id="weatherGripValue"></span></label>
+              <input id="weatherGrip" type="range" min="55" max="100" value="88" />
+            </div>
+            <div class="control-group">
+              <label for="tireLife">Tire life: <span id="tireLifeValue"></span></label>
+              <input id="tireLife" type="range" min="45" max="100" value="84" />
+            </div>
+            <div class="control-group">
+              <label for="fuelLoad">Fuel load (L): <span id="fuelLoadValue"></span></label>
+              <input id="fuelLoad" type="range" min="5" max="90" value="38" />
+            </div>
+          </section>
+
+          <section class="assumption-panel">
+            <h3>Ambient Conditions</h3>
+            <div class="control-group">
+              <label for="airTemp">Air temp (C): <span id="airTempValue"></span></label>
+              <input id="airTemp" type="range" min="-5" max="40" value="18" />
+            </div>
+            <div class="control-group">
+              <label for="trackTemp">Track temp (C): <span id="trackTempValue"></span></label>
+              <input id="trackTemp" type="range" min="0" max="60" value="28" />
+            </div>
+            <div class="control-group">
+              <label for="humidity">Humidity (%): <span id="humidityValue"></span></label>
+              <input id="humidity" type="range" min="10" max="100" value="45" />
+            </div>
+            <div class="control-group">
+              <label for="windSpeed">Wind speed (km/h): <span id="windSpeedValue"></span></label>
+              <input id="windSpeed" type="range" min="0" max="45" value="12" />
+            </div>
+          </section>
+
+          <section class="assumption-panel">
+            <h3>Model Assumptions</h3>
+            <div class="control-group">
+              <label for="tractionUtilization"
+                >Traction utilization: <span id="tractionUtilizationValue"></span
+              ></label>
+              <input id="tractionUtilization" type="range" min="70" max="100" value="90" />
+            </div>
+            <div class="control-group">
+              <label for="aeroEfficiency">Aero efficiency: <span id="aeroEfficiencyValue"></span></label>
+              <input id="aeroEfficiency" type="range" min="75" max="120" value="100" />
+            </div>
+            <div class="control-group">
+              <label for="resistanceLoad">Resistance load: <span id="resistanceLoadValue"></span></label>
+              <input id="resistanceLoad" type="range" min="80" max="130" value="100" />
+            </div>
+            <div class="control-group">
+              <label for="calibrationBias">Calibration bias: <span id="calibrationBiasValue"></span></label>
+              <input id="calibrationBias" type="range" min="-15" max="15" value="0" />
+            </div>
+          </section>
+
+          <div class="button-row">
+            <button id="predictBtn" class="btn btn-primary">Predict Potential Lap</button>
+            <button id="practiceBtn" class="btn btn-secondary">Run Practice Lap (+XP / credits)</button>
+            <button id="resetSaveBtn" class="btn btn-danger">Reset Saved Progress</button>
+          </div>
+          <p class="muted tiny">Autosave: <strong id="saveStatus">Idle</strong></p>
+        </aside>
+
+        <section class="panel results-panel">
+          <h2>Race Guild Progress</h2>
+          <div class="player-card">
+            <p>Driver Rank: <strong id="playerLevel"></strong></p>
+            <p>XP: <strong id="playerXp"></strong></p>
+            <p>Class: <strong id="playerClass"></strong></p>
+            <p>Credits: <strong id="playerCredits"></strong></p>
+            <div class="xp-meter">
+              <div id="xpFill"></div>
+            </div>
+          </div>
+
+          <div class="skills">
+            <h3>Build + Skills</h3>
+            <div class="control-group">
+              <label for="buildArchetypeSelect">Build archetype</label>
+              <select id="buildArchetypeSelect"></select>
+              <p class="muted tiny" id="buildArchetypeDescription"></p>
+            </div>
+            <div class="skill-grid">
+              <label>Telemetry <span id="skillTelemetryValue"></span></label>
+              <button data-skill="telemetry" class="skill-btn">Upgrade</button>
+
+              <label>Chassis Tuning <span id="skillTuningValue"></span></label>
+              <button data-skill="tuning" class="skill-btn">Upgrade</button>
+
+              <label>Race Craft <span id="skillRacecraftValue"></span></label>
+              <button data-skill="racecraft" class="skill-btn">Upgrade</button>
+            </div>
+            <p class="muted tiny">Unspent points: <strong id="skillPoints"></strong></p>
+          </div>
+
+          <div class="skills">
+            <h3>Unlock Tree</h3>
+            <div id="perkTree" class="stack-list"></div>
+          </div>
+
+          <div class="skills">
+            <h3>Part Upgrades</h3>
+            <div id="partsTree" class="stack-list"></div>
+          </div>
+
+          <div class="skills">
+            <h3>Crew Roles</h3>
+            <div id="crewTree" class="stack-list"></div>
+          </div>
+
+          <article class="prediction-card" id="predictionCard">
+            <h3>Potential Nurburgring Lap</h3>
+            <p class="big-time" id="predictedLap">--:--.---</p>
+            <p id="predictionBreakdown" class="muted">
+              Select a car and run a prediction to view breakdown.
+            </p>
+            <p id="predictionMeta" class="muted tiny"></p>
+          </article>
+        </section>
+
+        <section class="panel history-panel">
+          <h2>Lap Archive + Challenges</h2>
+          <p class="muted">Recent historical laps for selected car (seconds sorted newest -> oldest).</p>
+          <ul id="historyList" class="history-list"></ul>
+
+          <form id="manualLapForm" class="manual-form">
+            <label for="manualLapInput">Add your own lap (mm:ss.mmm)</label>
+            <div class="inline-form">
+              <input id="manualLapInput" placeholder="07:34.125" />
+              <button class="btn btn-secondary" type="submit">Add Lap</button>
+            </div>
+          </form>
+
+          <h3>Sector Gain/Loss Breakdown</h3>
+          <div class="sector-wrap">
+            <table class="sector-table">
+              <thead>
+                <tr>
+                  <th>Sector</th>
+                  <th>Time</th>
+                  <th>Gain/Loss</th>
+                </tr>
+              </thead>
+              <tbody id="sectorTableBody"></tbody>
+            </table>
+          </div>
+
+          <h3>Guild Leaderboard (Predicted)</h3>
+          <ol id="leaderboard" class="leaderboard"></ol>
+
+          <h3>Challenges</h3>
+          <ul id="questList" class="stack-list"></ul>
+        </section>
+
+        <section class="panel data-panel">
+          <h2>Data Hub</h2>
+
+          <h3>Lap Trend</h3>
+          <canvas id="lapTrendChart" width="480" height="210"></canvas>
+
+          <h3>A/B Car Comparison</h3>
+          <div class="inline-form">
+            <select id="compareCarSelect"></select>
+            <button id="swapCompareBtn" class="btn btn-secondary" type="button">Swap</button>
+          </div>
+          <div class="inline-form">
+            <select id="compareModeSelect"></select>
+            <select id="compareBaselineSelect"></select>
+          </div>
+          <div class="inline-form">
+            <button id="runCompareBtn" class="btn btn-secondary" type="button">Run Comparison</button>
+          </div>
+          <p id="comparisonResult" class="muted tiny"></p>
+
+          <h3>Profiles</h3>
+          <div class="inline-form">
+            <input id="profileNameInput" placeholder="profile name" />
+            <button id="saveProfileBtn" class="btn btn-secondary" type="button">Save</button>
+          </div>
+          <div class="inline-form">
+            <select id="profileSelect"></select>
+            <button id="loadProfileBtn" class="btn btn-secondary" type="button">Load</button>
+          </div>
+          <button id="deleteProfileBtn" class="btn btn-danger" type="button">Delete Profile</button>
+
+          <h3>Import / Export Save JSON</h3>
+          <div class="button-row">
+            <button id="exportSaveBtn" class="btn btn-secondary" type="button">Export JSON</button>
+            <button id="importSaveBtn" class="btn btn-secondary" type="button">Import JSON</button>
+          </div>
+          <textarea id="savePayloadArea" rows="7" placeholder="save payload appears here"></textarea>
+
+          <h3>Replay Log</h3>
+          <ul id="eventLogList" class="stack-list"></ul>
+        </section>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,13 @@
+Item 2: Cursor Chat Export (Required)
+
+This file is a placeholder and instruction note.
+
+To generate the actual deliverable:
+1) Open Cursor Chat pane (Cmd+L)
+2) Click the "..." menu at the top-right of the chat panel
+3) Choose "Export Chat"
+4) Save the export file into this folder as:
+   item2_cursor_chat_export.(txt|md|json|html)
+
+After exporting, keep this file or remove it.
+

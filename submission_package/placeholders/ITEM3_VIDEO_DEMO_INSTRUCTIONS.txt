@@ -1,0 +1,18 @@
+Item 3: Video Demo (30-60 seconds)
+
+Record a 30-60 second screen demo showing:
+1) Car selection and mode/tire selection
+2) Running prediction
+3) A/B comparison options
+4) Practice lap + progression update
+
+Accepted formats:
+- MP4 file
+- Loom link
+- YouTube link
+
+Place your video as one of:
+- /workspace/submission_package/item3_video_demo.mp4
+or include a link in:
+- /workspace/submission_package/item3_video_demo_link.txt
+
