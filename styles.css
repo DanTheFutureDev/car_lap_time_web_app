@@ -65,6 +65,10 @@ h1 {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
 }
 
+.data-panel {
+  grid-column: 1 / -1;
+}
+
 .panel h2 {
   margin-top: 0;
   margin-bottom: 0.9rem;
@@ -88,6 +92,16 @@ input {
   border: 1px solid #2f4263;
   background: #0c1527;
   color: var(--text);
+}
+
+textarea {
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid #2f4263;
+  background: #0c1527;
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
 
 input[type="range"] {
@@ -228,6 +242,69 @@ input[type="range"] {
   grid-template-columns: 1fr auto;
   gap: 0.5rem;
   margin-top: 0.4rem;
+}
+
+.stack-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.4rem 0 0.75rem;
+}
+
+.stack-list li {
+  margin-bottom: 0.45rem;
+  padding: 0.5rem 0.55rem;
+  border: 1px solid #2a3a59;
+  border-radius: 8px;
+  background: #0d1628;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.stack-list li button {
+  border: 1px solid #2e4468;
+  border-radius: 8px;
+  background: #182844;
+  color: #dcf3ff;
+  padding: 0.3rem 0.45rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quest-complete {
+  border-color: #2f6c50 !important;
+  background: #11271f !important;
+}
+
+.sector-wrap {
+  overflow-x: auto;
+}
+
+.sector-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.sector-table th,
+.sector-table td {
+  border: 1px solid #2a3a59;
+  padding: 0.4rem 0.45rem;
+  text-align: left;
+}
+
+.sector-table th {
+  background: #13213a;
+}
+
+.gain {
+  color: var(--accent-2);
+}
+
+.loss {
+  color: #ff9caf;
 }
 
 .assumption-panel {
