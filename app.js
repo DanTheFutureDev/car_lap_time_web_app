@@ -471,6 +471,10 @@ function sanitizeState(candidate) {
   if (!buildArchetypes.some((b) => b.id === sanitized.selectedBuildArchetypeId)) {
     sanitized.selectedBuildArchetypeId = defaultState.selectedBuildArchetypeId;
   }
+  if (sanitized.selectedCompareCarId === sanitized.selectedCarId) {
+    const alternative = carDatabase.find((car) => car.id !== sanitized.selectedCarId);
+    if (alternative) sanitized.selectedCompareCarId = alternative.id;
+  }
   return sanitized;
 }
 
@@ -480,6 +484,15 @@ function getSelectedCar() {
 
 function getCarById(id) {
   return carDatabase.find((car) => car.id === id);
+}
+
+function ensureValidCompareCar() {
+  const compareExists = carDatabase.some((car) => car.id === state.selectedCompareCarId);
+  if (compareExists && state.selectedCompareCarId !== state.selectedCarId) {
+    return;
+  }
+  const alternative = carDatabase.find((car) => car.id !== state.selectedCarId);
+  state.selectedCompareCarId = alternative ? alternative.id : state.selectedCarId;
 }
 
 function getSelectedTrackMode() {
@@ -784,10 +797,12 @@ function updateSlidersReadout() {
 }
 
 function renderSelectOptions() {
+  ensureValidCompareCar();
   dom.carSelect.innerHTML = carDatabase
     .map((car) => `<option value="${car.id}">${car.name}</option>`)
     .join("");
   dom.compareCarSelect.innerHTML = carDatabase
+    .filter((car) => car.id !== state.selectedCarId)
     .map((car) => `<option value="${car.id}">${car.name}</option>`)
     .join("");
   dom.trackModeSelect.innerHTML = trackModes
@@ -1177,6 +1192,7 @@ function setControlValuesFromState() {
 }
 
 function refreshAll() {
+  ensureValidCompareCar();
   setControlValuesFromState();
   renderSelectOptions();
   renderSpecs();
@@ -1190,17 +1206,20 @@ function refreshAll() {
   renderProfiles();
   renderEventLog();
   buildLeaderboard();
+  runComparison();
 }
 
 function wireEvents() {
   dom.carSelect.addEventListener("change", (event) => {
     state.selectedCarId = event.target.value;
+    ensureValidCompareCar();
     state.prediction = null;
     refreshAll();
     saveState();
   });
   dom.compareCarSelect.addEventListener("change", (event) => {
     state.selectedCompareCarId = event.target.value;
+    ensureValidCompareCar();
     runComparison();
     saveState();
   });
