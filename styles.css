@@ -1,12 +1,13 @@
 :root {
-  --bg: #060b17;
-  --panel: #111a2b;
-  --panel-light: #17233a;
-  --text: #e8eefc;
-  --muted: #9aa8c6;
-  --accent: #47c1ff;
-  --accent-2: #6effb8;
-  --danger: #ff6b87;
+  --bg: #07060f;
+  --panel: #111227;
+  --panel-light: #1a1c39;
+  --text: #f2f4ff;
+  --muted: #b0b5d8;
+  --accent: #58f0ff;
+  --accent-2: #9dff5f;
+  --danger: #ff5f9f;
+  --neon-purple: #b36bff;
 }
 
 * {
@@ -15,9 +16,12 @@
 
 body {
   margin: 0;
-  font-family: Inter, "Segoe UI", Roboto, sans-serif;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
   color: var(--text);
-  background: radial-gradient(circle at 20% 10%, #15213b 0%, var(--bg) 55%);
+  background:
+    radial-gradient(circle at 12% 8%, rgba(179, 107, 255, 0.22) 0%, transparent 45%),
+    radial-gradient(circle at 90% 14%, rgba(88, 240, 255, 0.18) 0%, transparent 50%),
+    linear-gradient(135deg, #06050f 0%, var(--bg) 55%, #0a0d23 100%);
   min-height: 100vh;
 }
 
@@ -29,6 +33,11 @@ body {
 
 .hero {
   margin-bottom: 1.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid #2a2f57;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(18, 25, 52, 0.75), rgba(29, 24, 56, 0.75));
+  box-shadow: 0 0 0 1px rgba(88, 240, 255, 0.12), 0 0 26px rgba(88, 240, 255, 0.12);
 }
 
 .kicker {
@@ -43,6 +52,7 @@ body {
 h1 {
   margin: 0.3rem 0 0.25rem;
   font-size: clamp(1.7rem, 3vw, 2.4rem);
+  text-shadow: 0 0 12px rgba(88, 240, 255, 0.4);
 }
 
 .subtitle {
@@ -59,10 +69,12 @@ h1 {
 
 .panel {
   background: linear-gradient(180deg, var(--panel-light), var(--panel));
-  border: 1px solid #243451;
+  border: 1px solid #2d325e;
   border-radius: 14px;
   padding: 1rem;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.3),
+    inset 0 0 0 1px rgba(179, 107, 255, 0.08);
 }
 
 .data-panel {
@@ -89,17 +101,18 @@ input {
   width: 100%;
   padding: 0.55rem 0.6rem;
   border-radius: 9px;
-  border: 1px solid #2f4263;
-  background: #0c1527;
+  border: 1px solid #3a4b73;
+  background: #0d1330;
   color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(88, 240, 255, 0.08);
 }
 
 textarea {
   width: 100%;
   padding: 0.55rem 0.6rem;
   border-radius: 9px;
-  border: 1px solid #2f4263;
-  background: #0c1527;
+  border: 1px solid #3a4b73;
+  background: #0d1330;
   color: var(--text);
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 }
@@ -158,25 +171,29 @@ input[type="range"] {
 }
 
 .btn-primary {
-  background: linear-gradient(90deg, var(--accent), #8ad8ff);
+  background: linear-gradient(90deg, var(--accent), #9ff6ff);
 }
 
 .btn-secondary {
-  background: linear-gradient(90deg, var(--accent-2), #b5ffdf);
+  background: linear-gradient(90deg, var(--accent-2), #d1ff99);
 }
 
 .btn-danger {
-  background: linear-gradient(90deg, var(--danger), #ff9cb0);
+  background: linear-gradient(90deg, var(--danger), #ff9ac4);
 }
 
 .player-card,
 .prediction-card,
 .skills {
-  background: #0c1425;
-  border: 1px solid #2a3a59;
+  background: #0d1630;
+  border: 1px solid #304269;
   border-radius: 10px;
   padding: 0.8rem;
   margin-bottom: 0.8rem;
+}
+
+.prediction-card.active {
+  box-shadow: 0 0 0 1px rgba(88, 240, 255, 0.2), 0 0 28px rgba(88, 240, 255, 0.2);
 }
 
 .xp-meter {
@@ -310,9 +327,9 @@ input[type="range"] {
 .assumption-panel {
   margin-bottom: 1rem;
   padding: 0.6rem;
-  border: 1px solid #2a3a59;
+  border: 1px solid #304269;
   border-radius: 10px;
-  background: #0b1222;
+  background: linear-gradient(180deg, #0d1730, #0b1327);
 }
 
 .assumption-panel h3 {
@@ -328,6 +345,18 @@ input[type="range"] {
   display: block;
   color: var(--muted);
   font-size: 0.75rem;
+}
+
+.compare-tag {
+  display: inline-block;
+  margin-left: 0.4rem;
+  padding: 0.08rem 0.35rem;
+  border-radius: 999px;
+  border: 1px solid rgba(88, 240, 255, 0.4);
+  background: rgba(88, 240, 255, 0.12);
+  color: #baf7ff;
+  font-size: 0.7rem;
+  letter-spacing: 0.03em;
 }
 
 .flash {

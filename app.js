@@ -142,6 +142,30 @@ const tireCompounds = [
     warmupLaps: 1,
     thermalWindowLow: 75,
     thermalWindowHigh: 110
+  },
+  {
+    id: "wet",
+    label: "Wet",
+    gripMultiplier: 0.985,
+    warmupLaps: 1,
+    thermalWindowLow: 20,
+    thermalWindowHigh: 60
+  },
+  {
+    id: "all-weather",
+    label: "All-Weather",
+    gripMultiplier: 0.97,
+    warmupLaps: 2,
+    thermalWindowLow: 30,
+    thermalWindowHigh: 75
+  },
+  {
+    id: "track-day-200tw",
+    label: "Track-Day 200TW",
+    gripMultiplier: 1.025,
+    warmupLaps: 2,
+    thermalWindowLow: 58,
+    thermalWindowHigh: 88
   }
 ];
 
@@ -318,6 +342,10 @@ const defaultState = {
   selectedTireCompoundId: "sport",
   selectedBuildArchetypeId: "balanced",
   selectedCompareCarId: carDatabase[1].id,
+  compareOptions: {
+    mode: "full-lap",
+    baseline: "selected-session"
+  },
   player: {
     level: 1,
     xp: 0,
@@ -366,6 +394,8 @@ const dom = {
   tireCompoundSelect: document.getElementById("tireCompoundSelect"),
   buildArchetypeSelect: document.getElementById("buildArchetypeSelect"),
   compareCarSelect: document.getElementById("compareCarSelect"),
+  compareModeSelect: document.getElementById("compareModeSelect"),
+  compareBaselineSelect: document.getElementById("compareBaselineSelect"),
   trackModeDescription: document.getElementById("trackModeDescription"),
   warmupInfo: document.getElementById("warmupInfo"),
   buildArchetypeDescription: document.getElementById("buildArchetypeDescription"),
@@ -397,6 +427,7 @@ const dom = {
   predictBtn: document.getElementById("predictBtn"),
   practiceBtn: document.getElementById("practiceBtn"),
   runCompareBtn: document.getElementById("runCompareBtn"),
+  swapCompareBtn: document.getElementById("swapCompareBtn"),
   resetSaveBtn: document.getElementById("resetSaveBtn"),
   saveProfileBtn: document.getElementById("saveProfileBtn"),
   loadProfileBtn: document.getElementById("loadProfileBtn"),
@@ -470,6 +501,14 @@ function sanitizeState(candidate) {
   }
   if (!buildArchetypes.some((b) => b.id === sanitized.selectedBuildArchetypeId)) {
     sanitized.selectedBuildArchetypeId = defaultState.selectedBuildArchetypeId;
+  }
+  const validCompareModes = ["full-lap", "sectors", "power-weight", "consistency"];
+  if (!validCompareModes.includes(sanitized.compareOptions.mode)) {
+    sanitized.compareOptions.mode = defaultState.compareOptions.mode;
+  }
+  const validBaselines = ["selected-session", "ideal-ambient", "rain-session"];
+  if (!validBaselines.includes(sanitized.compareOptions.baseline)) {
+    sanitized.compareOptions.baseline = defaultState.compareOptions.baseline;
   }
   if (sanitized.selectedCompareCarId === sanitized.selectedCarId) {
     const alternative = carDatabase.find((car) => car.id !== sanitized.selectedCarId);
@@ -588,6 +627,40 @@ function computeAmbientDelta(tire) {
   const humidityPenalty = Math.max(0, humidity - 65) * 0.03;
   const windPenalty = windSpeed * 0.04;
   return airPenalty + trackPenalty + humidityPenalty + windPenalty;
+}
+
+function withTemporaryOverrides(mode, fn) {
+  const original = {
+    ambient: { ...state.ambient },
+    modifiers: { ...state.modifiers },
+    tireLife: state.modifiers.tireLife
+  };
+  if (mode === "ideal-ambient") {
+    state.ambient.airTemp = 16;
+    state.ambient.trackTemp = 35;
+    state.ambient.humidity = 32;
+    state.ambient.windSpeed = 4;
+    state.modifiers.weatherGrip = Math.max(state.modifiers.weatherGrip, 95);
+    state.modifiers.tireLife = Math.max(state.modifiers.tireLife, 94);
+  }
+  if (mode === "rain-session") {
+    state.ambient.airTemp = 12;
+    state.ambient.trackTemp = 17;
+    state.ambient.humidity = 88;
+    state.ambient.windSpeed = 24;
+    state.modifiers.weatherGrip = Math.min(state.modifiers.weatherGrip, 68);
+    state.modifiers.tireLife = Math.min(state.modifiers.tireLife, 82);
+  }
+  try {
+    return fn();
+  } finally {
+    state.ambient.airTemp = original.ambient.airTemp;
+    state.ambient.trackTemp = original.ambient.trackTemp;
+    state.ambient.humidity = original.ambient.humidity;
+    state.ambient.windSpeed = original.ambient.windSpeed;
+    state.modifiers.weatherGrip = original.modifiers.weatherGrip;
+    state.modifiers.tireLife = original.tireLife;
+  }
 }
 
 function computeTireDelta(tire) {
@@ -798,6 +871,17 @@ function updateSlidersReadout() {
 
 function renderSelectOptions() {
   ensureValidCompareCar();
+  const compareModeOptions = [
+    { id: "full-lap", label: "Mode: Full Lap Pace" },
+    { id: "sectors", label: "Mode: Sector Delta Focus" },
+    { id: "power-weight", label: "Mode: Power-to-Weight" },
+    { id: "consistency", label: "Mode: Consistency Spread" }
+  ];
+  const compareBaselineOptions = [
+    { id: "selected-session", label: "Baseline: Current Session" },
+    { id: "ideal-ambient", label: "Baseline: Ideal Ambient" },
+    { id: "rain-session", label: "Baseline: Rain Session" }
+  ];
   dom.carSelect.innerHTML = carDatabase
     .map((car) => `<option value="${car.id}">${car.name}</option>`)
     .join("");
@@ -814,11 +898,19 @@ function renderSelectOptions() {
   dom.buildArchetypeSelect.innerHTML = buildArchetypes
     .map((build) => `<option value="${build.id}">${build.label}</option>`)
     .join("");
+  dom.compareModeSelect.innerHTML = compareModeOptions
+    .map((opt) => `<option value="${opt.id}">${opt.label}</option>`)
+    .join("");
+  dom.compareBaselineSelect.innerHTML = compareBaselineOptions
+    .map((opt) => `<option value="${opt.id}">${opt.label}</option>`)
+    .join("");
   dom.carSelect.value = state.selectedCarId;
   dom.compareCarSelect.value = state.selectedCompareCarId;
   dom.trackModeSelect.value = state.selectedTrackModeId;
   dom.tireCompoundSelect.value = state.selectedTireCompoundId;
   dom.buildArchetypeSelect.value = state.selectedBuildArchetypeId;
+  dom.compareModeSelect.value = state.compareOptions.mode;
+  dom.compareBaselineSelect.value = state.compareOptions.baseline;
   dom.trackModeDescription.textContent = getSelectedTrackMode().description;
   const tire = getSelectedTire();
   dom.warmupInfo.textContent = `${tire.label} warmup: ${tire.warmupLaps} lap(s), window ${tire.thermalWindowLow}-${tire.thermalWindowHigh}C`;
@@ -1014,13 +1106,48 @@ function runComparison() {
   const currentCar = getSelectedCar();
   const compareCar = getCarById(state.selectedCompareCarId);
   if (!compareCar) return;
-  const current = computePotentialLap(currentCar).totalSec;
-  const other = computePotentialLap(compareCar).totalSec;
-  const delta = other - current;
-  dom.comparisonResult.textContent =
-    delta >= 0
-      ? `${currentCar.name} is projected ${delta.toFixed(2)}s faster than ${compareCar.name}.`
-      : `${compareCar.name} is projected ${Math.abs(delta).toFixed(2)}s faster than ${currentCar.name}.`;
+  const mode = state.compareOptions.mode;
+  const baseline = state.compareOptions.baseline;
+
+  const comparisonText = withTemporaryOverrides(baseline, () => {
+    const currentLap = computePotentialLap(currentCar);
+    const otherLap = computePotentialLap(compareCar);
+
+    if (mode === "power-weight") {
+      const currentPw = currentCar.horsepower / currentCar.curbWeightKg;
+      const otherPw = compareCar.horsepower / compareCar.curbWeightKg;
+      const deltaPw = (otherPw - currentPw) * 1000;
+      return deltaPw >= 0
+        ? `${compareCar.name} has +${deltaPw.toFixed(1)} hp/ton over ${currentCar.name} (${baseline}).`
+        : `${currentCar.name} has +${Math.abs(deltaPw).toFixed(1)} hp/ton over ${compareCar.name} (${baseline}).`;
+    }
+
+    if (mode === "consistency") {
+      const currentSpread = Math.max(...currentCar.lapHistorySec) - Math.min(...currentCar.lapHistorySec);
+      const otherSpread = Math.max(...compareCar.lapHistorySec) - Math.min(...compareCar.lapHistorySec);
+      const spreadDelta = otherSpread - currentSpread;
+      return spreadDelta >= 0
+        ? `${currentCar.name} is ${spreadDelta.toFixed(2)}s more consistent than ${compareCar.name} (${baseline}).`
+        : `${compareCar.name} is ${Math.abs(spreadDelta).toFixed(2)}s more consistent than ${currentCar.name} (${baseline}).`;
+    }
+
+    if (mode === "sectors") {
+      const gains = currentLap.sectors.map((sector, i) => ({
+        name: sector.name,
+        delta: otherLap.sectors[i].seconds - sector.seconds
+      }));
+      const best = gains.reduce((top, row) => (Math.abs(row.delta) > Math.abs(top.delta) ? row : top), gains[0]);
+      const ahead = best.delta >= 0 ? currentCar.name : compareCar.name;
+      return `${ahead} gains most at ${best.name} (${Math.abs(best.delta).toFixed(2)}s) in ${baseline}.`;
+    }
+
+    const delta = otherLap.totalSec - currentLap.totalSec;
+    return delta >= 0
+      ? `${currentCar.name} is projected ${delta.toFixed(2)}s faster than ${compareCar.name} (${baseline}).`
+      : `${compareCar.name} is projected ${Math.abs(delta).toFixed(2)}s faster than ${currentCar.name} (${baseline}).`;
+  });
+
+  dom.comparisonResult.textContent = comparisonText;
 }
 
 function predict() {
@@ -1113,9 +1240,11 @@ function saveProfile() {
   if (!name) return;
   state.profiles[name] = {
     selectedCarId: state.selectedCarId,
+    selectedCompareCarId: state.selectedCompareCarId,
     selectedTrackModeId: state.selectedTrackModeId,
     selectedTireCompoundId: state.selectedTireCompoundId,
     selectedBuildArchetypeId: state.selectedBuildArchetypeId,
+    compareOptions: structuredClone(state.compareOptions),
     modifiers: structuredClone(state.modifiers),
     ambient: structuredClone(state.ambient),
     assumptions: structuredClone(state.assumptions)
@@ -1131,9 +1260,13 @@ function loadProfile() {
   if (!name || !state.profiles[name]) return;
   const profile = state.profiles[name];
   state.selectedCarId = profile.selectedCarId;
+  state.selectedCompareCarId = profile.selectedCompareCarId ?? state.selectedCompareCarId;
   state.selectedTrackModeId = profile.selectedTrackModeId;
   state.selectedTireCompoundId = profile.selectedTireCompoundId;
   state.selectedBuildArchetypeId = profile.selectedBuildArchetypeId;
+  if (profile.compareOptions) {
+    state.compareOptions = structuredClone(profile.compareOptions);
+  }
   state.modifiers = structuredClone(profile.modifiers);
   state.ambient = structuredClone(profile.ambient);
   state.assumptions = structuredClone(profile.assumptions);
@@ -1223,6 +1356,16 @@ function wireEvents() {
     runComparison();
     saveState();
   });
+  dom.compareModeSelect.addEventListener("change", (event) => {
+    state.compareOptions.mode = event.target.value;
+    runComparison();
+    saveState();
+  });
+  dom.compareBaselineSelect.addEventListener("change", (event) => {
+    state.compareOptions.baseline = event.target.value;
+    runComparison();
+    saveState();
+  });
   dom.trackModeSelect.addEventListener("change", (event) => {
     state.selectedTrackModeId = event.target.value;
     state.prediction = null;
@@ -1267,6 +1410,15 @@ function wireEvents() {
   dom.predictBtn.addEventListener("click", predict);
   dom.practiceBtn.addEventListener("click", practiceLap);
   dom.runCompareBtn.addEventListener("click", runComparison);
+  dom.swapCompareBtn.addEventListener("click", () => {
+    const previousPrimary = state.selectedCarId;
+    state.selectedCarId = state.selectedCompareCarId;
+    state.selectedCompareCarId = previousPrimary;
+    ensureValidCompareCar();
+    state.prediction = null;
+    refreshAll();
+    saveState();
+  });
   dom.resetSaveBtn.addEventListener("click", resetSave);
   dom.saveProfileBtn.addEventListener("click", saveProfile);
   dom.loadProfileBtn.addEventListener("click", loadProfile);

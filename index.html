@@ -10,6 +10,7 @@
     <main class="app-shell">
       <header class="hero">
         <p class="kicker">RPG + Telemetry Simulator</p>
+        <p class="style-chip">Visual Style: Neo-Arcade HUD</p>
         <h1>Nurburgring Lap Quest</h1>
         <p class="subtitle">
           Track-sector analysis, tire strategy, ambient conditions, and full RPG progression for
@@ -208,7 +209,14 @@
           <h3>A/B Car Comparison</h3>
           <div class="inline-form">
             <select id="compareCarSelect"></select>
-            <button id="runCompareBtn" class="btn btn-secondary" type="button">Compare</button>
+            <button id="swapCompareBtn" class="btn btn-secondary" type="button">Swap</button>
+          </div>
+          <div class="inline-form">
+            <select id="compareModeSelect"></select>
+            <select id="compareBaselineSelect"></select>
+          </div>
+          <div class="inline-form">
+            <button id="runCompareBtn" class="btn btn-secondary" type="button">Run Comparison</button>
           </div>
           <p id="comparisonResult" class="muted tiny"></p>
 
